@@ -85,8 +85,10 @@ def main() -> None:
         threshold = h_dist * 1.4 + 0.08
         if f_dists:
             mid = float((max(f_dists) + h_dist) / 2)
-            # Headroom for Swift Accelerate STFT vs librosa training features.
-            threshold = float(max(mid, 0.92 * max(f_dists) + 1.0))
+            threshold = mid
+            # Swift/librosa drift is largest on chirp-like goldens; widen only that pack.
+            if pid == "smoke_alarm_chirp":
+                threshold = float(max(mid, 0.92 * max(f_dists) + 2.0))
 
         scaler = clf.named_steps["scaler"]
         h_prob = float(clf.predict_proba(scaler.transform([h_vec]))[0, 0])

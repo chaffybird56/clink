@@ -25,7 +25,7 @@ enum DemoRunner {
                 let result = try scorer.score(profile: profile, audioURL: url)
                 let ok = golden
                     ? result.status == .healthy
-                    : result.status != .healthy
+                    : result.status == .fault
                 if !ok { failures += 1 }
                 let mark = ok ? "OK" : "FAIL"
                 print(

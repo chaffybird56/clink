@@ -77,16 +77,16 @@ Expect every **golden → HEALTHY** and every **fault → WATCH or FAULT** (not 
 <!-- VALIDATION:START -->
 | Profile | Clip | Result | Distance | Threshold | ML healthy |
 |---------|------|--------|----------|-----------|------------|
-| Garage door opener | golden | PASS | 0.00 | 169.00 | 1% |
-| Garage door opener | fault | PASS | 192.05 | 169.00 | 96% |
-| Microwave / appliance hum | golden | PASS | 0.00 | 107.93 | 15% |
-| Microwave / appliance hum | fault | PASS | 122.64 | 107.93 | 100% |
-| Relay / turn signal | golden | PASS | 0.00 | 202.34 | 0% |
-| Relay / turn signal | fault | PASS | 229.94 | 202.34 | 99% |
-| Smoke alarm chirp | golden | PASS | 0.00 | 106.41 | 15% |
-| Smoke alarm chirp | fault | PASS | 120.93 | 106.41 | 96% |
-| Vacuum cleaner | golden | PASS | 0.00 | 84.69 | 6% |
-| Vacuum cleaner | fault | PASS | 96.24 | 84.69 | 100% |
+| Garage door opener | golden | PASS | 0.00 | 96.02 | 1% |
+| Garage door opener | fault | PASS | 192.04 | 96.02 | 97% |
+| Microwave / appliance hum | golden | PASS | 0.00 | 61.23 | 17% |
+| Microwave / appliance hum | fault | PASS | 122.46 | 61.23 | 100% |
+| Relay / turn signal | golden | PASS | 0.00 | 114.97 | 0% |
+| Relay / turn signal | fault | PASS | 229.94 | 114.97 | 99% |
+| Smoke alarm chirp | golden | PASS | 0.00 | 113.25 | 16% |
+| Smoke alarm chirp | fault | PASS | 120.93 | 113.25 | 96% |
+| Vacuum cleaner | golden | PASS | 0.00 | 48.36 | 7% |
+| Vacuum cleaner | fault | PASS | 96.73 | 48.36 | 100% |
 <!-- VALIDATION:END -->
 
 Regenerate this table after retraining:
