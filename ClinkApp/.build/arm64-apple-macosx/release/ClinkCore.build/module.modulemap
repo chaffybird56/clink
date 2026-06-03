@@ -1,0 +1,4 @@
+module ClinkCore {
+    header "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/ClinkCore.build/ClinkCore-Swift.h"
+    requires objc
+}

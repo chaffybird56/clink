@@ -1,0 +1,8 @@
+version: "Apple Swift version 6.0.2 (swiftlang-6.0.2.1.2 clang-1600.0.26.4)"
+options: "e6abc5ee317df2360a2112fe9e08f1032368da608c2cf466eafd05f4682f3185"
+build_start_time: [1780472136, 847110000]
+build_end_time: [1780472137, 365459000]
+inputs:
+  "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/Clink.build/DerivedSources/resource_bundle_accessor.swift": [1780472093, 292464311]
+  "/private/tmp/clink/ClinkApp/Sources/Clink/ClinkApp.swift": [1780471804, 415028324]
+  "/private/tmp/clink/ClinkApp/Sources/Clink/ContentView.swift": [1780472135, 197124535]

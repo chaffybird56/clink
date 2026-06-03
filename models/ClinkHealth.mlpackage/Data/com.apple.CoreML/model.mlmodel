@@ -1,0 +1,117 @@
+ﬁ
+
+features
+*
+@êÄR!
+healthy_probability
+*
+êÄ¢ü
+7Acoustic health probability from 64-d spectral featuresClink¢:
++com.github.apple.coremltools.source_dialectTorchScript¢4
+#com.github.apple.coremltools.sourcetorch==2.12.0¢+
+$com.github.apple.coremltools.version9.0¢:
+,com.github.apple.coremltools.conversion_date
+2026-06-03≤î¶
+mainù
+
+features
+
+
+
+@CoreML6Ò
+CoreML6Âhealthy_probability¢
+const+
+linear_weight_to_fp16
+
+
+
+@*?
+val8
+
+
+
+@*"
+@model_path/weights/weight.bin@*+
+name#
+
+"
+linear_weight_to_fp16x
+const#
+linear_bias_to_fp16
+
+
+
+*
+val
+
+
+
+
+:
+ŒG*)
+name!
+
+"
+linear_bias_to_fp16µ
+linear#
+weight
+
+linear_weight_to_fp16
+bias
+
+linear_bias_to_fp16
+x
+
+
+features(
+linear_0_cast_fp16
+
+
+
+*(
+name 
+
+"
+linear_0_cast_fp16w
+sigmoid
+x
+
+linear_0_cast_fp16)
+healthy_probability
+
+
+
+*$
+name
+
+"
+op_6_cast_fp16"Ê
+	buildInfoÿ"
+
+
+≈"¬
+6
+!
+
+"
+coremltools-version
+	
+"
+9.0
+A
+)
+!
+"
+coremltools-component-torch
+
+
+"
+2.12.0
+E
+(
+ 
+"
+coremltools-source-dialect
+
+"
+TorchScript

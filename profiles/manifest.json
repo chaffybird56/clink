@@ -1,0 +1,37 @@
+{
+  "box_fan": {
+    "title": "Box fan",
+    "blurb": "Bedroom desk fan \u2014 everyone knows this hum.",
+    "audience": "general",
+    "golden_wav": "samples/golden/box_fan.wav",
+    "fault_wav": "samples/fault/box_fan.wav"
+  },
+  "laptop_fan": {
+    "title": "Laptop / PC fan",
+    "blurb": "Cooling fan whine \u2014 thermal & power debugging.",
+    "audience": "EE / CE / SE",
+    "golden_wav": "samples/golden/laptop_fan.wav",
+    "fault_wav": "samples/fault/laptop_fan.wav"
+  },
+  "vacuum_cleaner": {
+    "title": "Vacuum cleaner",
+    "blurb": "Household motor \u2014 clogged or failing bearing.",
+    "audience": "general",
+    "golden_wav": "samples/golden/vacuum_cleaner.wav",
+    "fault_wav": "samples/fault/vacuum_cleaner.wav"
+  },
+  "relay_click": {
+    "title": "Relay / turn signal",
+    "blurb": "Electromechanical tick \u2014 HIL and automotive-adjacent.",
+    "audience": "EE / test",
+    "golden_wav": "samples/golden/relay_click.wav",
+    "fault_wav": "samples/fault/relay_click.wav"
+  },
+  "microwave_hum": {
+    "title": "Microwave / appliance hum",
+    "blurb": "Mains hum + magnetron tone \u2014 kitchen appliance baseline.",
+    "audience": "general",
+    "golden_wav": "samples/golden/microwave_hum.wav",
+    "fault_wav": "samples/fault/microwave_hum.wav"
+  }
+}

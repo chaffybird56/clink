@@ -1,0 +1,8 @@
+version: "Apple Swift version 6.0.2 (swiftlang-6.0.2.1.2 clang-1600.0.26.4)"
+options: "5e2b5f8cc733d558acdd880a399f8a7caa294fec5fc6d98bb1f9828de90895de"
+build_start_time: [1780472135, 775601000]
+build_end_time: [1780472136, 768798000]
+inputs:
+  "/private/tmp/clink/ClinkApp/Sources/ClinkCore/FeatureExtractor.swift": [1780472123, 312691675]
+  "/private/tmp/clink/ClinkApp/Sources/ClinkCore/HealthScorer.swift": [1780472049, 643434409]
+  "/private/tmp/clink/ClinkApp/Sources/ClinkCore/ProfileStore.swift": [1780472132, 342682397]

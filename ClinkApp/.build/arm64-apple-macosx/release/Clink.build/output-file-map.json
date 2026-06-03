@@ -1,0 +1,22 @@
+{
+  "": {
+    "dependencies": "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/Clink.build/Clink.d",
+    "object": "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/Clink.build/Clink.o",
+    "swift-dependencies": "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/Clink.build/master.swiftdeps"
+  },
+  "/private/tmp/clink/ClinkApp/Sources/Clink/ClinkApp.swift": {
+    "object": "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/Clink.build/ClinkApp.swift.o",
+    "swiftmodule": "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/Clink.build/ClinkApp~partial.swiftmodule",
+    "swift-dependencies": "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/Clink.build/ClinkApp.swiftdeps"
+  },
+  "/private/tmp/clink/ClinkApp/Sources/Clink/ContentView.swift": {
+    "object": "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/Clink.build/ContentView.swift.o",
+    "swiftmodule": "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/Clink.build/ContentView~partial.swiftmodule",
+    "swift-dependencies": "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/Clink.build/ContentView.swiftdeps"
+  },
+  "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/Clink.build/DerivedSources/resource_bundle_accessor.swift": {
+    "object": "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/Clink.build/resource_bundle_accessor.swift.o",
+    "swiftmodule": "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/Clink.build/resource_bundle_accessor~partial.swiftmodule",
+    "swift-dependencies": "/private/tmp/clink/ClinkApp/.build/arm64-apple-macosx/release/Clink.build/resource_bundle_accessor.swiftdeps"
+  }
+}
