@@ -1,11 +1,14 @@
 import SwiftUI
 
-@main
 struct ClinkApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .frame(minWidth: 720, minHeight: 520)
+                .frame(minWidth: 780, minHeight: 560)
+        }
+        .defaultSize(width: 920, height: 640)
+        .commands {
+            CommandGroup(replacing: .newItem) {}
         }
     }
 }
