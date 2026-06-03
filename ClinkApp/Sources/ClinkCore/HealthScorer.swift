@@ -13,7 +13,9 @@ public final class HealthScorer {
         guard let modelURL = bundle.url(forResource: "ClinkHealth", withExtension: "mlpackage") else {
             throw HealthScorerError.modelMissing
         }
-        model = try MLModel(contentsOf: modelURL)
+        // ML Program packages must be compiled before inference (Xcode does this automatically).
+        let compiledURL = try MLModel.compileModel(at: modelURL)
+        model = try MLModel(contentsOf: compiledURL)
         extractor = try FeatureExtractor(bundle: bundle)
     }
 
@@ -26,7 +28,7 @@ public final class HealthScorer {
         let status: HealthResult.Status
         if dist <= profile.distanceThreshold {
             status = .healthy
-        } else if dist <= profile.distanceThreshold * 1.2 {
+        } else if dist <= profile.distanceThreshold * 1.1 {
             status = .watch
         } else {
             status = .fault

@@ -5,4 +5,6 @@ cd "$(dirname "$0")/.."
 source .venv/bin/activate
 python train/validate_clips.py
 test -x ClinkApp/.build/release/Clink
-echo "OK: validate_clips passed and Clink binary built"
+cd ClinkApp && .build/release/Clink --demo
+cd ..
+echo "OK: validate_clips + Clink --demo passed"

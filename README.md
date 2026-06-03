@@ -62,6 +62,14 @@ swift build -c release
 
 In the app: select a profile → **Test healthy sound** / **Test fault sound** / **Import WAV…**.
 
+**Headless local check** (same logic as the GUI, no window):
+
+```bash
+cd ClinkApp && swift build -c release && .build/release/Clink --demo
+```
+
+Expect every **golden → HEALTHY** and every **fault → WATCH or FAULT** (not healthy).
+
 ## Validation (automated)
 
 `scripts/build_layer1.sh` ends with `train/validate_clips.py` — every golden **PASS**, every fault **FAIL** (distance-primary).
@@ -69,16 +77,16 @@ In the app: select a profile → **Test healthy sound** / **Test fault sound** /
 <!-- VALIDATION:START -->
 | Profile | Clip | Result | Distance | Threshold | ML healthy |
 |---------|------|--------|----------|-----------|------------|
-| Garage door opener | golden | PASS | 0.00 | 96.04 | 2% |
-| Garage door opener | fault | PASS | 192.07 | 96.04 | 96% |
-| Microwave / appliance hum | golden | PASS | 0.00 | 61.13 | 15% |
-| Microwave / appliance hum | fault | PASS | 122.26 | 61.13 | 100% |
-| Relay / turn signal | golden | PASS | 0.00 | 114.97 | 0% |
-| Relay / turn signal | fault | PASS | 229.94 | 114.97 | 99% |
-| Smoke alarm chirp | golden | PASS | 0.00 | 60.46 | 15% |
-| Smoke alarm chirp | fault | PASS | 120.93 | 60.46 | 96% |
-| Vacuum cleaner | golden | PASS | 0.00 | 48.19 | 7% |
-| Vacuum cleaner | fault | PASS | 96.37 | 48.19 | 100% |
+| Garage door opener | golden | PASS | 0.00 | 169.00 | 1% |
+| Garage door opener | fault | PASS | 192.05 | 169.00 | 96% |
+| Microwave / appliance hum | golden | PASS | 0.00 | 107.93 | 15% |
+| Microwave / appliance hum | fault | PASS | 122.64 | 107.93 | 100% |
+| Relay / turn signal | golden | PASS | 0.00 | 202.34 | 0% |
+| Relay / turn signal | fault | PASS | 229.94 | 202.34 | 99% |
+| Smoke alarm chirp | golden | PASS | 0.00 | 106.41 | 15% |
+| Smoke alarm chirp | fault | PASS | 120.93 | 106.41 | 96% |
+| Vacuum cleaner | golden | PASS | 0.00 | 84.69 | 6% |
+| Vacuum cleaner | fault | PASS | 96.24 | 84.69 | 100% |
 <!-- VALIDATION:END -->
 
 Regenerate this table after retraining:

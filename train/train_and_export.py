@@ -84,7 +84,9 @@ def main() -> None:
         f_dists = [float(np.linalg.norm(fv - centroid)) for fv in fault_vecs]
         threshold = h_dist * 1.4 + 0.08
         if f_dists:
-            threshold = float((max(f_dists) + h_dist) / 2)
+            mid = float((max(f_dists) + h_dist) / 2)
+            # Headroom for Swift Accelerate STFT vs librosa training features.
+            threshold = float(max(mid, 0.92 * max(f_dists) + 1.0))
 
         scaler = clf.named_steps["scaler"]
         h_prob = float(clf.predict_proba(scaler.transform([h_vec]))[0, 0])

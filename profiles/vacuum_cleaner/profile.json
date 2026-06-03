@@ -69,7 +69,7 @@
     13.635868072509766,
     12.988191604614258
   ],
-  "distance_threshold": 48.185791015625,
-  "healthy_ml_probability": 0.0014026670447410128,
-  "fault_ml_probability": 0.00039406724085244704
+  "distance_threshold": 89.53732360839844,
+  "healthy_ml_probability": 0.0008677158021673792,
+  "fault_ml_probability": 0.0002270707917286785
 }

@@ -24,7 +24,14 @@ def feature_vector(y: np.ndarray, sr: int = SR) -> np.ndarray:
     import librosa
 
     mel = librosa.feature.melspectrogram(
-        y=y, sr=sr, n_fft=N_FFT, hop_length=HOP, n_mels=N_MELS, fmax=8000
+        y=y,
+        sr=sr,
+        n_fft=N_FFT,
+        hop_length=HOP,
+        n_mels=N_MELS,
+        fmax=8000,
+        center=True,
+        power=2.0,
     )
     log_mel = librosa.power_to_db(mel, ref=np.max)
     means = log_mel.mean(axis=1)
