@@ -1,17 +1,17 @@
 {
-  "box_fan": {
-    "title": "Box fan",
-    "blurb": "Bedroom desk fan \u2014 everyone knows this hum.",
-    "audience": "general",
-    "golden_wav": "samples/golden/box_fan.wav",
-    "fault_wav": "samples/fault/box_fan.wav"
+  "smoke_alarm_chirp": {
+    "title": "Smoke alarm chirp",
+    "blurb": "Periodic low-battery chirp \u2014 sharp, recognizable signature.",
+    "audience": "general / safety",
+    "golden_wav": "samples/golden/smoke_alarm_chirp.wav",
+    "fault_wav": "samples/fault/smoke_alarm_chirp.wav"
   },
-  "laptop_fan": {
-    "title": "Laptop / PC fan",
-    "blurb": "Cooling fan whine \u2014 thermal & power debugging.",
-    "audience": "EE / CE / SE",
-    "golden_wav": "samples/golden/laptop_fan.wav",
-    "fault_wav": "samples/fault/laptop_fan.wav"
+  "garage_door": {
+    "title": "Garage door opener",
+    "blurb": "Motor ramp + rail + end-stop \u2014 mechanical sequence, not fan noise.",
+    "audience": "general / home",
+    "golden_wav": "samples/golden/garage_door.wav",
+    "fault_wav": "samples/fault/garage_door.wav"
   },
   "vacuum_cleaner": {
     "title": "Vacuum cleaner",

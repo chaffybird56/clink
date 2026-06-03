@@ -10,19 +10,19 @@ import tempfile
 import urllib.request
 from pathlib import Path
 
-from features import DURATION_S, SR, load_mono
+from features import SR
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "samples" / "downloaded"
 GOLDEN = ROOT / "samples" / "golden"
 
-# Mixkit preview MP3s (royalty-free, no attribution). See mixkit.co/license
+# Mixkit preview MP3s — see https://mixkit.co/license
 CANDIDATES = {
-    "box_fan": [
-        "https://assets.mixkit.co/active_storage/sfx/1813/1813-preview.mp3",
+    "smoke_alarm_chirp": [
+        "https://assets.mixkit.co/active_storage/sfx/988/988-preview.mp3",  # alarm clock beep
     ],
-    "laptop_fan": [
-        "https://assets.mixkit.co/active_storage/sfx/1866/1866-preview.mp3",
+    "garage_door": [
+        "https://assets.mixkit.co/active_storage/sfx/1523/1523-preview.mp3",  # heavy sliding door
     ],
     "vacuum_cleaner": [
         "https://assets.mixkit.co/active_storage/sfx/1834/1834-preview.mp3",
@@ -54,6 +54,8 @@ def try_download(url: str, dest: Path) -> bool:
 def mp3_to_golden_wav(mp3_path: Path, wav_path: Path) -> bool:
     import librosa
     import soundfile as sf
+
+    from features import DURATION_S
 
     try:
         y, _ = librosa.load(str(mp3_path), sr=SR, mono=True, duration=DURATION_S)

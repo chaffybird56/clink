@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate relatable golden + fault WAV clips (CC0-style originals, synthetic faults)."""
+"""Generate distinct golden + fault WAV clips (synthetic faults paired with downloads)."""
 from __future__ import annotations
 
 import json
@@ -24,27 +24,51 @@ def _save(path: Path, y: np.ndarray) -> None:
     sf.write(path, np.clip(y, -1, 1), SR)
 
 
-def box_fan() -> tuple[np.ndarray, np.ndarray]:
+def smoke_alarm_chirp() -> tuple[np.ndarray, np.ndarray]:
     t = _t()
-    # Household box fan: tonal hum + blade whoosh
-    healthy = 0.35 * np.sin(2 * np.pi * 120 * t)
-    healthy += 0.12 * np.sin(2 * np.pi * 240 * t)
-    healthy += 0.08 * np.random.randn(len(t))
-    # Fault: bearing grind + wobble
+    y = np.zeros_like(t)
+    # Low-battery style chirp: short 3.2 kHz bursts every ~0.55 s
+    for phase in np.arange(0.05, DURATION_S, 0.55):
+        idx = int(phase * SR)
+        burst = int(0.045 * SR)
+        tone = 0.75 * np.sin(2 * np.pi * 3200 * np.linspace(0, burst / SR, burst, endpoint=False))
+        env = np.hanning(burst)
+        if idx + burst < len(y):
+            y[idx : idx + burst] = tone * env
+    healthy = y.astype(np.float32)
     fault = healthy.copy()
-    fault += 0.15 * np.sin(2 * np.pi * 7 * t) * healthy
-    fault += 0.2 * np.sin(2 * np.pi * 900 * t)
-    return healthy.astype(np.float32), fault.astype(np.float32)
+    # Weak battery: slower chirp, lower pitch, uneven level
+    fault *= 0.45
+    fault += 0.12 * np.sin(2 * np.pi * 2100 * t)
+    for phase in np.arange(0.12, DURATION_S, 0.78):
+        idx = int(phase * SR)
+        burst = int(0.06 * SR)
+        if idx + burst < len(fault):
+            fault[idx : idx + burst] += 0.25 * np.sin(2 * np.pi * 1800 * np.linspace(0, burst / SR, burst))
+    return healthy, fault.astype(np.float32)
 
 
-def laptop_fan() -> tuple[np.ndarray, np.ndarray]:
+def garage_door() -> tuple[np.ndarray, np.ndarray]:
     t = _t()
-    # Higher pitch PC/laptop cooler
-    healthy = 0.3 * np.sin(2 * np.pi * 420 * t) + 0.1 * np.sin(2 * np.pi * 840 * t)
-    healthy += 0.06 * np.random.randn(len(t))
-    fault = healthy * (1 + 0.4 * np.sin(2 * np.pi * 12 * t))
-    fault += 0.18 * np.sin(2 * np.pi * 2100 * t)
-    return healthy.astype(np.float32), fault.astype(np.float32)
+    # Opener motor ramp + rail rumble + end-stop clunk
+    ramp = np.clip(t / 0.35, 0, 1) * np.clip((DURATION_S - t) / 0.25, 0, 1)
+    healthy = 0.32 * ramp * np.sin(2 * np.pi * 95 * t)
+    healthy += 0.18 * ramp * np.sin(2 * np.pi * 190 * t)
+    healthy += 0.08 * ramp * np.random.randn(len(t))
+    clunk_idx = int(0.85 * SR)
+    burst = int(0.02 * SR)
+    if clunk_idx + burst < len(healthy):
+        healthy[clunk_idx : clunk_idx + burst] += 0.65 * np.hanning(burst * 2)[::2][:burst]
+    healthy = healthy.astype(np.float32)
+    fault = healthy.copy()
+    # Grinding belt + double clunk (misaligned track)
+    fault += 0.22 * ramp * np.sin(2 * np.pi * 47 * t)
+    fault += 0.15 * ramp * np.sin(2 * np.pi * 430 * t)
+    fault[clunk_idx : clunk_idx + burst] *= 1.4
+    clunk2 = int(1.15 * SR)
+    if clunk2 + burst < len(fault):
+        fault[clunk2 : clunk2 + burst] += 0.5 * np.hanning(burst * 2)[::2][:burst]
+    return healthy, fault.astype(np.float32)
 
 
 def vacuum_cleaner() -> tuple[np.ndarray, np.ndarray]:
@@ -58,14 +82,12 @@ def vacuum_cleaner() -> tuple[np.ndarray, np.ndarray]:
 def relay_click() -> tuple[np.ndarray, np.ndarray]:
     t = _t()
     y = np.zeros_like(t)
-    # Crisp relay / turn-signal style clicks every ~0.4 s
     for phase in np.arange(0, DURATION_S, 0.42):
         idx = int(phase * SR)
         burst = int(0.012 * SR)
         y[idx : idx + burst] = 0.9 * np.hanning(burst * 2)[::2][:burst]
     healthy = y.astype(np.float32)
     fault = healthy.copy()
-    # Weak/springy: softer clicks + extra bounce
     fault *= 0.55
     for phase in np.arange(0.08, DURATION_S, 0.42):
         idx = int(phase * SR) + int(0.02 * SR)
@@ -85,17 +107,17 @@ def microwave_hum() -> tuple[np.ndarray, np.ndarray]:
 
 
 PROFILES = {
-    "box_fan": {
-        "title": "Box fan",
-        "blurb": "Bedroom desk fan — everyone knows this hum.",
-        "audience": "general",
-        "gen": box_fan,
+    "smoke_alarm_chirp": {
+        "title": "Smoke alarm chirp",
+        "blurb": "Periodic low-battery chirp — sharp, recognizable signature.",
+        "audience": "general / safety",
+        "gen": smoke_alarm_chirp,
     },
-    "laptop_fan": {
-        "title": "Laptop / PC fan",
-        "blurb": "Cooling fan whine — thermal & power debugging.",
-        "audience": "EE / CE / SE",
-        "gen": laptop_fan,
+    "garage_door": {
+        "title": "Garage door opener",
+        "blurb": "Motor ramp + rail + end-stop — mechanical sequence, not fan noise.",
+        "audience": "general / home",
+        "gen": garage_door,
     },
     "vacuum_cleaner": {
         "title": "Vacuum cleaner",
