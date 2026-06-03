@@ -38,7 +38,7 @@ final class AppModel: ObservableObject {
         isAnalyzing = true
         do {
             let scored = try scorer.score(profile: profile, audioURL: url)
-            withAnimation(.spring(response: 0.45, dampingFraction: 0.82)) {
+            withAnimation(.spring(response: 0.48, dampingFraction: 0.8)) {
                 result = scored
             }
         } catch {
@@ -80,20 +80,13 @@ struct ContentView: View {
     private var sidebar: some View {
         List(selection: $model.selectedId) {
             Section {
+                SidebarBrandHeader()
+                    .listRowInsets(EdgeInsets(top: 12, leading: 12, bottom: 4, trailing: 12))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+
                 if model.profiles.isEmpty {
-                    VStack(spacing: 8) {
-                        Image(systemName: "folder.badge.questionmark")
-                            .font(.title2)
-                            .foregroundStyle(.secondary)
-                        Text("No profiles")
-                            .font(.headline)
-                        Text(model.errorMessage ?? "Profile packs could not be loaded.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 20)
+                    sidebarEmpty
                 } else {
                     ForEach(model.profiles) { profile in
                         ProfileSidebarRow(
@@ -101,115 +94,102 @@ struct ContentView: View {
                             isSelected: model.selectedId == profile.id
                         )
                         .tag(profile.id)
+                        .listRowInsets(EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8))
+                        .listRowSeparator(.hidden)
                     }
                 }
-            } header: {
-                Label("Profile packs", systemImage: "square.stack.3d.up")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(nil)
             }
         }
         .listStyle(.sidebar)
-        .navigationTitle("Clink")
-        .navigationSplitViewColumnWidth(min: 220, ideal: ClinkLayout.sidebarWidth, max: 320)
+        .scrollContentBackground(.hidden)
+        .background(Color(nsColor: .controlBackgroundColor).opacity(0.35))
+        .navigationSplitViewColumnWidth(min: 240, ideal: ClinkLayout.sidebarWidth, max: 300)
+    }
+
+    private var sidebarEmpty: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "tray")
+                .font(.title2)
+                .foregroundStyle(.tertiary)
+            Text("No profiles loaded")
+                .font(.subheadline.weight(.medium))
+            if let err = model.errorMessage {
+                Text(err)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 24)
+        .listRowBackground(Color.clear)
     }
 
     // MARK: - Detail
 
     private var detailPane: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: ClinkLayout.sectionSpacing) {
-                heroHeader
-
-                if let err = model.errorMessage {
-                    ErrorBanner(message: err)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
+        ZStack {
+            MeshBackground()
+            ScrollView {
+                VStack(alignment: .leading, spacing: ClinkLayout.sectionSpacing) {
+                    profileHero
+                    if let err = model.errorMessage {
+                        ErrorBanner(message: err)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+                    AnalysisActionCluster(
+                        isDisabled: model.selectedProfile == nil,
+                        isAnalyzing: model.isAnalyzing,
+                        onHealthy: { model.runBundled(golden: true) },
+                        onFault: { model.runBundled(golden: false) },
+                        onImport: { openWAV() }
+                    )
+                    resultSection
                 }
-
-                actionBar
-
-                resultSection
+                .padding(ClinkLayout.detailPadding)
+                .frame(maxWidth: ClinkLayout.contentMaxWidth, alignment: .leading)
+                .frame(maxWidth: .infinity, alignment: .center)
             }
-            .padding(ClinkLayout.detailPadding)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(detailBackground)
         .toolbar { detailToolbar }
-        .navigationTitle(model.selectedProfile?.title ?? "Acoustic health")
+        .navigationTitle("")
     }
 
-    private var heroHeader: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .center, spacing: 14) {
-                Image(systemName: "ear.and.waveform")
-                    .font(.system(size: 28))
-                    .symbolRenderingMode(.hierarchical)
-                    .foregroundStyle(.secondary)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Acoustic health check")
-                        .font(.system(.largeTitle, design: .default, weight: .bold))
-                    Text("Compare a short clip against the selected profile centroid and Core ML advisory score.")
-                        .font(.subheadline)
+    private var profileHero: some View {
+        GlassCard(cornerRadius: ClinkLayout.cardCornerLarge) {
+            HStack(alignment: .top, spacing: 20) {
+                if let profile = model.selectedProfile {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(ProfileSymbol.tint(for: profile.id).opacity(0.15))
+                            .frame(width: 56, height: 56)
+                        Image(systemName: ProfileSymbol.systemName(for: profile.id))
+                            .font(.system(size: 26, weight: .semibold))
+                            .symbolRenderingMode(.hierarchical)
+                            .foregroundStyle(ProfileSymbol.tint(for: profile.id))
+                    }
+                } else {
+                    ClinkBrandMark(size: 56)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(model.selectedProfile?.title ?? "Select a profile")
+                        .font(.system(.title, design: .rounded, weight: .bold))
+                    Text(model.selectedProfile?.blurb ?? "Choose a machine signature from the sidebar — each pack learns a golden spectral fingerprint.")
+                        .font(.body)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
+                    if let profile = model.selectedProfile {
+                        HStack(spacing: 8) {
+                            AudiencePill(text: profile.audience)
+                            Label("~2 s WAV", systemImage: "clock")
+                                .font(.caption.weight(.medium))
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
                 }
             }
-
-            if let profile = model.selectedProfile {
-                HStack(spacing: 8) {
-                    Image(systemName: ProfileSymbol.systemName(for: profile.id))
-                        .foregroundStyle(.secondary)
-                    Text(profile.blurb)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                    Spacer(minLength: 0)
-                    AudiencePill(text: profile.audience)
-                }
-                .padding(12)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-            }
-        }
-        .accessibilityElement(children: .combine)
-    }
-
-    private var actionBar: some View {
-        HStack(spacing: 12) {
-            Button {
-                model.runBundled(golden: true)
-            } label: {
-                Label("Test healthy", systemImage: "checkmark.circle")
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(Color(red: 0.2, green: 0.62, blue: 0.48))
-            .disabled(model.selectedProfile == nil || model.isAnalyzing)
-            .accessibilityHint("Plays the bundled golden reference clip for this profile")
-
-            Button {
-                model.runBundled(golden: false)
-            } label: {
-                Label("Test fault", systemImage: "xmark.circle")
-            }
-            .buttonStyle(.bordered)
-            .disabled(model.selectedProfile == nil || model.isAnalyzing)
-            .accessibilityHint("Plays the bundled fault reference clip for this profile")
-
-            Button {
-                openWAV()
-            } label: {
-                Label("Import WAV…", systemImage: "square.and.arrow.down")
-            }
-            .buttonStyle(.bordered)
-            .disabled(model.selectedProfile == nil || model.isAnalyzing)
-            .accessibilityHint("Opens a file panel to analyze a WAV clip")
-
-            if model.isAnalyzing {
-                ProgressView()
-                    .controlSize(.small)
-                    .padding(.leading, 4)
-            }
-
-            Spacer(minLength: 0)
+            .padding(22)
         }
     }
 
@@ -219,38 +199,31 @@ struct ContentView: View {
             HealthResultCard(result: result, fileName: model.lastFile)
                 .id("\(result.profileId)-\(result.status.rawValue)-\(model.lastFile)")
                 .transition(.asymmetric(
-                    insertion: .opacity.combined(with: .scale(scale: 0.98)),
+                    insertion: .opacity.combined(with: .offset(y: 12)),
                     removal: .opacity
                 ))
         } else if model.selectedProfile != nil {
             EmptyResultPlaceholder()
+                .transition(.opacity)
         }
-    }
-
-    private var detailBackground: some View {
-        ZStack {
-            Color(nsColor: .windowBackgroundColor)
-            LinearGradient(
-                colors: [
-                    Color.accentColor.opacity(colorScheme == .dark ? 0.06 : 0.04),
-                    Color.clear,
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        }
-        .ignoresSafeArea()
     }
 
     @ToolbarContentBuilder
     private var detailToolbar: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            HStack(spacing: 6) {
+                ClinkBrandMark(size: 22)
+                Text("Clink")
+                    .font(.headline.weight(.semibold))
+            }
+        }
         ToolbarItemGroup(placement: .primaryAction) {
             Button {
                 openWAV()
             } label: {
                 Label("Import WAV", systemImage: "doc.badge.plus")
             }
-            .help("Import a WAV clip for analysis")
+            .help("Import a short WAV clip for analysis")
             .disabled(model.selectedProfile == nil)
         }
     }

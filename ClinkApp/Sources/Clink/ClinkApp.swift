@@ -4,9 +4,9 @@ struct ClinkApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .frame(minWidth: 780, minHeight: 560)
+                .frame(minWidth: 800, minHeight: 580)
         }
-        .defaultSize(width: 920, height: 640)
+        .defaultSize(width: 980, height: 680)
         .commands {
             CommandGroup(replacing: .newItem) {}
         }
