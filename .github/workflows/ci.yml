@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  layer1-train-validate:
+    name: "Layer 1 — train + validate (Python)"
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: train/requirements.txt
+
+      - name: Train, export Core ML, validate clips
+        run: bash scripts/build_layer1.sh
+
+      - name: Upload trained artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: clink-models
+          path: |
+            models/
+            profiles/
+          retention-days: 14
+
+  layer2-app:
+    name: "Layer 2 + 4 — Swift build, tests, headless demo"
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ClinkApp
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build (release)
+        run: swift build -c release
+
+      - name: Unit tests (parity, scorer, baseline builder)
+        run: swift test
+
+      - name: Headless demo gate (golden→HEALTHY, fault→FAULT, baseline self-check)
+        run: .build/release/Clink --demo
+
+      - name: CLI baseline flow (--make-profile)
+        run: |
+          .build/release/Clink --make-profile \
+            Sources/Clink/Resources/profiles/vacuum_cleaner/golden.wav \
+            --id ci_baseline --name "CI baseline"
+
+  ios-core:
+    name: "iOS-ready — ClinkCore compiles for iOS Simulator"
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ClinkApp
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build ClinkCore for iOS Simulator
+        run: |
+          xcodebuild -scheme ClinkCore \
+            -destination 'generic/platform=iOS Simulator' \
+            -skipPackagePluginValidation \
+            build
