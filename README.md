@@ -6,6 +6,15 @@
 
 > **Layers 1–4 shipped:** Python train → Core ML, macOS SwiftUI app, GitHub Actions CI, and **record-your-baseline** custom profiles. `ClinkCore` compiles for iOS.
 
+<p align="center">
+  <img src="docs/screenshots/healthy.png" width="820" alt="Clink macOS app — smoke alarm chirp golden clip scored HEALTHY: distance 107.97 vs threshold 113.25, with spectral fingerprint gauge and Core ML advisory score">
+</p>
+
+| Drift gets flagged | Teach it your machine |
+|---|---|
+| ![Garage door fault clip scored FAULT — distance 202.99 blows past the 95.69 healthy gate](docs/screenshots/fault.png) | ![Record-your-baseline flow — naming a custom profile learned from your own clip](docs/screenshots/baseline.png) |
+| Same profile, drifted clip → **FAULT**: distance 202.99 vs gate 95.7, beyond the watch band. | **Record baseline (3 s)** or import a WAV → Clink learns its fingerprint as a new profile. |
+
 ## At a glance
 
 | | |
@@ -136,8 +145,8 @@ python scripts/update_readme_validation.py
 - [x] Layer 3 — GitHub Actions (train + validate, Swift build + tests + demo, iOS compile)
 - [x] Layer 4 — Record-your-baseline flow (mic + WAV import, self-calibrated threshold)
 - [x] User-defined profiles (fans OK when **you** supply the golden clip)
+- [x] README screenshots (`scripts/capture_screenshots.sh` — deterministic `--auto` states)
 - [ ] iOS app target (ClinkCore already compiles for iOS)
-- [ ] Demo GIF for this README
 
 <details>
 <summary>Technical depth — layout & signal chain</summary>
@@ -149,7 +158,7 @@ profiles/           manifest + per-pack profile.json (centroid, threshold)
 models/             ClinkHealth.mlpackage, mel_filters.json
 ClinkApp/           ClinkCore library + SwiftUI executable + bundled Resources
 ClinkApp/Tests/     ClinkCoreTests (parity fixtures committed)
-scripts/            build_layer1.sh, smoke_test.sh, export_parity_fixture.py
+scripts/            build_layer1.sh, smoke_test.sh, export_parity_fixture.py, capture_screenshots.sh
 .github/workflows/  ci.yml (Layer 3)
 ```
 

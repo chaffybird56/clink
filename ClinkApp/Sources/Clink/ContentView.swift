@@ -37,6 +37,38 @@ final class AppModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+        applyAutoState()
+    }
+
+    /// Hidden `--auto <state>` launch flag used by scripts/capture_screenshots.sh
+    /// to drive the UI into a deterministic state for README screenshots.
+    private func applyAutoState() {
+        let args = CommandLine.arguments
+        guard let idx = args.firstIndex(of: "--auto"), idx + 1 < args.count else { return }
+        let state = args[idx + 1]
+        if let pidx = args.firstIndex(of: "--auto-profile"), pidx + 1 < args.count,
+           profiles.contains(where: { $0.id == args[pidx + 1] }) {
+            selectedId = args[pidx + 1]
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            if let window = NSApplication.shared.windows.first {
+                window.setContentSize(NSSize(width: 1060, height: 940))
+                window.center()
+            }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            switch state {
+            case "healthy":
+                self.runBundled(golden: true)
+            case "fault":
+                self.runBundled(golden: false)
+            case "name-sheet":
+                self.newProfileName = "Garage fridge compressor"
+                self.isNamingProfile = true
+            default:
+                break
+            }
+        }
     }
 
     func run(url: URL) {
