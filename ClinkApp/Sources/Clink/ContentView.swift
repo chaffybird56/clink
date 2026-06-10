@@ -11,14 +11,22 @@ final class AppModel: ObservableObject {
     @Published var lastFile: String = ""
     @Published var errorMessage: String?
     @Published var isAnalyzing: Bool = false
+    @Published var isRecording: Bool = false
+    @Published var isNamingProfile: Bool = false
+    @Published var newProfileName: String = ""
 
     private var store = ProfileStore()
     private var scorer: HealthScorer?
     private let bundle = Bundle.module
+    private let recorder = BaselineRecorder()
+    private var pendingClipURL: URL?
 
     var selectedProfile: ProfilePack? {
         profiles.first { $0.id == selectedId }
     }
+
+    var bundledProfiles: [ProfilePack] { profiles.filter { !$0.isCustom } }
+    var customProfiles: [ProfilePack] { profiles.filter { $0.isCustom } }
 
     func bootstrap() {
         do {
@@ -59,6 +67,90 @@ final class AppModel: ObservableObject {
         }
         run(url: url)
     }
+
+    // MARK: - Layer 4: record your baseline
+
+    func beginCreateProfile(from url: URL) {
+        pendingClipURL = url
+        newProfileName = ""
+        isNamingProfile = true
+    }
+
+    func recordBaseline(seconds: Double = 3.0) {
+        errorMessage = nil
+        BaselineRecorder.requestPermission { [weak self] granted in
+            guard let self else { return }
+            guard granted else {
+                self.errorMessage = BaselineRecorderError.permissionDenied.errorDescription
+                return
+            }
+            self.isRecording = true
+            self.recorder.record(seconds: seconds) { result in
+                self.isRecording = false
+                switch result {
+                case .success(let url):
+                    self.beginCreateProfile(from: url)
+                case .failure(let error):
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    func confirmCreateProfile() {
+        defer {
+            isNamingProfile = false
+            pendingClipURL = nil
+        }
+        guard let url = pendingClipURL else { return }
+        let name = newProfileName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return }
+
+        do {
+            let extractor = try FeatureExtractor(bundle: bundle)
+            let builder = BaselineBuilder(extractor: extractor)
+            let profile = try builder.buildProfile(id: uniqueId(for: name), title: name, goldenURL: url)
+            try store.saveCustom(profile: profile, goldenFrom: url, bundle: bundle)
+            profiles = store.profiles
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                selectedId = profile.id
+                result = nil
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func deleteCustomProfile(_ profile: ProfilePack) {
+        do {
+            try store.deleteCustom(id: profile.id, bundle: bundle)
+            profiles = store.profiles
+            if selectedId == profile.id {
+                selectedId = profiles.first?.id ?? ""
+                result = nil
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func uniqueId(for name: String) -> String {
+        var slug = name.lowercased()
+            .map { ($0.isLetter || $0.isNumber) ? $0 : "_" }
+            .reduce(into: "") { acc, ch in
+                if ch == "_" && acc.hasSuffix("_") { return }
+                acc.append(ch)
+            }
+            .trimmingCharacters(in: CharacterSet(charactersIn: "_"))
+        if slug.isEmpty { slug = "my_baseline" }
+        var candidate = slug
+        var n = 2
+        while profiles.contains(where: { $0.id == candidate }) {
+            candidate = "\(slug)_\(n)"
+            n += 1
+        }
+        return candidate
+    }
 }
 
 struct ContentView: View {
@@ -88,7 +180,7 @@ struct ContentView: View {
                 if model.profiles.isEmpty {
                     sidebarEmpty
                 } else {
-                    ForEach(model.profiles) { profile in
+                    ForEach(model.bundledProfiles) { profile in
                         ProfileSidebarRow(
                             profile: profile,
                             isSelected: model.selectedId == profile.id
@@ -99,11 +191,114 @@ struct ContentView: View {
                     }
                 }
             }
+
+            Section("Your baselines") {
+                ForEach(model.customProfiles) { profile in
+                    ProfileSidebarRow(
+                        profile: profile,
+                        isSelected: model.selectedId == profile.id
+                    )
+                    .tag(profile.id)
+                    .listRowInsets(EdgeInsets(top: 2, leading: 8, bottom: 2, trailing: 8))
+                    .listRowSeparator(.hidden)
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            model.deleteCustomProfile(profile)
+                        } label: {
+                            Label("Delete baseline", systemImage: "trash")
+                        }
+                    }
+                }
+
+                baselineActions
+                    .listRowInsets(EdgeInsets(top: 6, leading: 8, bottom: 10, trailing: 8))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+            }
         }
         .listStyle(.sidebar)
         .scrollContentBackground(.hidden)
         .background(Color(nsColor: .controlBackgroundColor).opacity(0.35))
         .navigationSplitViewColumnWidth(min: 240, ideal: ClinkLayout.sidebarWidth, max: 300)
+        .sheet(isPresented: $model.isNamingProfile) {
+            namingSheet
+        }
+    }
+
+    private var baselineActions: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button {
+                model.recordBaseline()
+            } label: {
+                HStack(spacing: 6) {
+                    if model.isRecording {
+                        ProgressView()
+                            .controlSize(.small)
+                        Text("Listening…")
+                    } else {
+                        Image(systemName: "mic.fill")
+                        Text("Record baseline (3 s)")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+            .disabled(model.isRecording)
+
+            Button {
+                importBaselineWAV()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "waveform.badge.plus")
+                    Text("Baseline from WAV…")
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .disabled(model.isRecording)
+        }
+    }
+
+    private var namingSheet: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 10) {
+                Image(systemName: "waveform.badge.plus")
+                    .font(.title2)
+                    .foregroundStyle(ClinkColors.brandPrimary)
+                Text("Name your baseline")
+                    .font(.title3.weight(.semibold))
+            }
+            Text("Clink learned this clip's spectral fingerprint. Future clips are compared against it.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            TextField("e.g. Garage fridge compressor", text: $model.newProfileName)
+                .textFieldStyle(.roundedBorder)
+                .onSubmit { model.confirmCreateProfile() }
+            HStack {
+                Spacer()
+                Button("Cancel") { model.isNamingProfile = false }
+                    .keyboardShortcut(.cancelAction)
+                Button("Create profile") { model.confirmCreateProfile() }
+                    .keyboardShortcut(.defaultAction)
+                    .buttonStyle(.borderedProminent)
+                    .disabled(model.newProfileName.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+        }
+        .padding(22)
+        .frame(width: 380)
+    }
+
+    private func importBaselineWAV() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.wav, .audio]
+        panel.allowsMultipleSelection = false
+        panel.message = "Choose a healthy clip (2 s or longer) to learn as your baseline"
+        if panel.runModal() == .OK, let url = panel.url {
+            model.beginCreateProfile(from: url)
+        }
     }
 
     private var sidebarEmpty: some View {

@@ -19,20 +19,18 @@ public final class HealthScorer {
         extractor = try FeatureExtractor(bundle: bundle)
     }
 
+    /// Distance to profile centroid is primary; Core ML probability is advisory (WATCH band).
+    public static func status(distance: Float, threshold: Float) -> HealthResult.Status {
+        if distance <= threshold { return .healthy }
+        if distance <= threshold * 1.1 { return .watch }
+        return .fault
+    }
+
     public func score(profile: ProfilePack, audioURL: URL) throws -> HealthResult {
         let feats = try extractor.extract(url: audioURL).vector
         let dist = euclidean(feats, profile.centroid)
         let prob = try healthyProbability(features: feats)
-
-        // Distance to profile centroid is primary; Core ML probability is advisory (WATCH band).
-        let status: HealthResult.Status
-        if dist <= profile.distanceThreshold {
-            status = .healthy
-        } else if dist <= profile.distanceThreshold * 1.1 {
-            status = .watch
-        } else {
-            status = .fault
-        }
+        let status = Self.status(distance: dist, threshold: profile.distanceThreshold)
 
         return HealthResult(
             profileId: profile.id,
