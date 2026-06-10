@@ -1,8 +1,10 @@
 # Clink
 
-**Does it still sound healthy?** Drop a ~2 second WAV, pick a profile, and get **HEALTHY**, **WATCH**, or **FAULT** — acoustic drift detection on your Mac, with on-device Core ML.
+[![CI](https://github.com/chaffybird56/clink/actions/workflows/ci.yml/badge.svg)](https://github.com/chaffybird56/clink/actions/workflows/ci.yml)
 
-> **Layers 1–2 shipped:** Python train → Core ML + macOS SwiftUI demo. CI, iOS, and “record your baseline” are next.
+**Does it still sound healthy?** Drop a ~2 second WAV — or record one — pick a profile, and get **HEALTHY**, **WATCH**, or **FAULT** — acoustic drift detection on your Mac, with on-device Core ML.
+
+> **Layers 1–4 shipped:** Python train → Core ML, macOS SwiftUI app, GitHub Actions CI, and **record-your-baseline** custom profiles. `ClinkCore` compiles for iOS.
 
 ## At a glance
 
@@ -25,7 +27,7 @@
 
 Bundled **golden** clips come from [Mixkit](https://mixkit.co/license/) when online; **fault** pairs are synthetic “something changed” examples for one-click demo in the app.
 
-**Important:** A profile is **your** healthy baseline (this clip’s centroid), not “every smoke alarm in the world.” Import your own WAV when you move to a real device.
+**Important:** A profile is **your** healthy baseline (this clip’s centroid), not “every smoke alarm in the world.” Record or import your own clip — see [Record your baseline](#record-your-baseline-layer-4).
 
 ## How it works
 
@@ -68,7 +70,20 @@ In the app: select a profile → **Test healthy sound** / **Test fault sound** /
 cd ClinkApp && swift build -c release && .build/release/Clink --demo
 ```
 
-Expect every **golden → HEALTHY** and every **fault → WATCH or FAULT** (not healthy).
+Expect every **golden → HEALTHY**, every **fault → WATCH or FAULT** (not healthy), plus a Layer 4 baseline self-check.
+
+## Record your baseline (Layer 4)
+
+Bundled packs are demos — the real workflow is teaching Clink **your** machine:
+
+- **GUI:** sidebar → **Your baselines** → *Record baseline (3 s)* (mic) or *Baseline from WAV…* → name it. Custom profiles persist in `~/Library/Application Support/Clink/profiles/` and can be deleted from the context menu.
+- **CLI:**
+
+```bash
+.build/release/Clink --make-profile path/to/healthy.wav --id my_fridge --name "Garage fridge"
+```
+
+The clip is sliced into overlapping 2 s windows; the **centroid** is the mean fingerprint and the **threshold self-calibrates** from worst intra-clip drift (×1.6 headroom, floored so steady sounds keep a WATCH band). Any WAV format works — input is resampled to 22.05 kHz mono.
 
 ## Validation (automated)
 
@@ -77,16 +92,16 @@ Expect every **golden → HEALTHY** and every **fault → WATCH or FAULT** (not 
 <!-- VALIDATION:START -->
 | Profile | Clip | Result | Distance | Threshold | ML healthy |
 |---------|------|--------|----------|-----------|------------|
-| Garage door opener | golden | PASS | 0.00 | 96.02 | 1% |
-| Garage door opener | fault | PASS | 192.04 | 96.02 | 97% |
-| Microwave / appliance hum | golden | PASS | 0.00 | 61.23 | 17% |
-| Microwave / appliance hum | fault | PASS | 122.46 | 61.23 | 100% |
+| Garage door opener | golden | PASS | 0.00 | 95.69 | 2% |
+| Garage door opener | fault | PASS | 191.39 | 95.69 | 96% |
+| Microwave / appliance hum | golden | PASS | 0.00 | 61.55 | 14% |
+| Microwave / appliance hum | fault | PASS | 123.10 | 61.55 | 100% |
 | Relay / turn signal | golden | PASS | 0.00 | 114.97 | 0% |
 | Relay / turn signal | fault | PASS | 229.94 | 114.97 | 99% |
-| Smoke alarm chirp | golden | PASS | 0.00 | 113.25 | 16% |
-| Smoke alarm chirp | fault | PASS | 120.93 | 113.25 | 96% |
-| Vacuum cleaner | golden | PASS | 0.00 | 48.36 | 7% |
-| Vacuum cleaner | fault | PASS | 96.73 | 48.36 | 100% |
+| Smoke alarm chirp | golden | PASS | 0.00 | 113.25 | 15% |
+| Smoke alarm chirp | fault | PASS | 120.93 | 113.25 | 97% |
+| Vacuum cleaner | golden | PASS | 0.00 | 48.11 | 7% |
+| Vacuum cleaner | fault | PASS | 96.23 | 48.11 | 100% |
 <!-- VALIDATION:END -->
 
 Regenerate this table after retraining:
@@ -97,11 +112,15 @@ python scripts/update_readme_validation.py
 
 ## Tests
 
-| Script | Purpose |
-|--------|---------|
-| `scripts/build_layer1.sh` | Synthesize → download → train → export → validate |
-| `scripts/smoke_test.sh` | Validate + confirm release binary exists |
+| Gate | Purpose |
+|------|---------|
+| `scripts/build_layer1.sh` | Synthesize → download → train → export → validate → refresh parity fixtures |
+| `cd ClinkApp && swift test` | Swift↔Python **feature parity**, status bands, baseline builder, custom-profile persistence |
+| `Clink --demo` | Headless: every golden→HEALTHY, fault→FAULT + baseline self-check |
+| `scripts/smoke_test.sh` | Validate + demo + unit tests in one shot |
 | `train/validate_clips.py` | Per-profile golden/fault gate |
+
+**CI (Layer 3):** [GitHub Actions](.github/workflows/ci.yml) runs all of the above on every push — a Python train/validate job, a Swift build + tests + demo job, and an **iOS Simulator compile check** for `ClinkCore`.
 
 ## Documentation
 
@@ -112,9 +131,13 @@ python scripts/update_readme_validation.py
 
 ## Roadmap
 
-- [ ] Layer 3 — GitHub Actions (train + validate on push)
-- [ ] Layer 4 — Record-your-baseline flow + iOS
-- [ ] User-defined profiles (fans OK when **you** supply the golden clip)
+- [x] Layer 1 — Python train → Core ML export + clip validation
+- [x] Layer 2 — macOS SwiftUI app + headless demo gate
+- [x] Layer 3 — GitHub Actions (train + validate, Swift build + tests + demo, iOS compile)
+- [x] Layer 4 — Record-your-baseline flow (mic + WAV import, self-calibrated threshold)
+- [x] User-defined profiles (fans OK when **you** supply the golden clip)
+- [ ] iOS app target (ClinkCore already compiles for iOS)
+- [ ] Demo GIF for this README
 
 <details>
 <summary>Technical depth — layout & signal chain</summary>
@@ -124,14 +147,17 @@ train/              synthesize, download_samples, features, train_and_export
 samples/golden|fault/   WAV pairs per profile
 profiles/           manifest + per-pack profile.json (centroid, threshold)
 models/             ClinkHealth.mlpackage, mel_filters.json
-ClinkApp/           SwiftUI executable + bundled Resources
-scripts/            build_layer1.sh, smoke_test.sh
+ClinkApp/           ClinkCore library + SwiftUI executable + bundled Resources
+ClinkApp/Tests/     ClinkCoreTests (parity fixtures committed)
+scripts/            build_layer1.sh, smoke_test.sh, export_parity_fixture.py
+.github/workflows/  ci.yml (Layer 3)
 ```
 
 - **Audio:** 22.05 kHz, 2.0 s mono, Hann window, 2048 FFT, 32 mel bands (fmax 8 kHz).  
 - **Features:** mel power → `power_to_db(ref=max)` → per-band mean + std (64-d).  
-- **Classifier:** logistic regression exported via PyTorch JIT → `ClinkHealth.mlpackage` (macOS 13+).  
-- **Scoring in app:** `distance ≤ threshold` → HEALTHY; up to 1.2× threshold → WATCH; else FAULT.
+- **Classifier:** logistic regression exported via PyTorch JIT → `ClinkHealth.mlpackage` (macOS 13+, iOS 16+).  
+- **Scoring in app:** `distance ≤ threshold` → HEALTHY; up to 1.1× threshold → WATCH; else FAULT.  
+- **Custom baselines (Layer 4):** overlapping 2 s windows → mean centroid; threshold = `max(30, 1.6 × worst intra-clip drift)`; mic capture via AVAudioEngine → 22.05 kHz mono WAV.
 
 </details>
 
