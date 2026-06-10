@@ -4,7 +4,7 @@
 
 **Does it still sound healthy?** Drop a ~2 second WAV — or record one — pick a profile, and get **HEALTHY**, **WATCH**, or **FAULT** — acoustic drift detection on your Mac, with on-device Core ML.
 
-> **Layers 1–4 shipped:** Python train → Core ML, macOS SwiftUI app, GitHub Actions CI, and **record-your-baseline** custom profiles. `ClinkCore` compiles for iOS.
+> **Layers 1–4:** Python train → Core ML, macOS SwiftUI app, GitHub Actions CI, and **record-your-baseline** custom profiles. `ClinkCore` compiles for iOS.
 
 <p align="center">
   <img src="docs/screenshots/healthy.png" width="820" alt="Clink macOS app — smoke alarm chirp golden clip scored HEALTHY: distance 107.97 vs threshold 113.25, with spectral fingerprint gauge and Core ML advisory score">
