@@ -1,9 +1,6 @@
 {
-  "id": "smoke_alarm_chirp",
-  "title": "Smoke alarm chirp",
-  "blurb": "Periodic low-battery chirp \u2014 sharp, recognizable signature.",
-  "audience": "general / safety",
-  "centroid": [
+  "profile": "smoke_alarm_chirp",
+  "vector": [
     -75.2893295288086,
     -77.17093658447266,
     -77.95857238769531,
@@ -68,8 +65,5 @@
     3.1422486305236816,
     5.100675106048584,
     13.894341468811035
-  ],
-  "distance_threshold": 113.25120635986329,
-  "healthy_ml_probability": 0.0010886238536302884,
-  "fault_ml_probability": 0.0006914509572240046
+  ]
 }

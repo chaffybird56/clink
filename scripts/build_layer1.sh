@@ -9,4 +9,5 @@ python train/download_samples.py
 python train/export_mel_filters.py
 python train/train_and_export.py
 python train/validate_clips.py
+python scripts/export_parity_fixture.py
 python scripts/update_readme_validation.py
